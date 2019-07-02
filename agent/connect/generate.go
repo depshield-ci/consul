@@ -7,8 +7,6 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
-	"strings"
-
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
