@@ -87,6 +87,7 @@ func GeneratePrivateKeyWithConfig(keyType string, keyBits int) (crypto.Signer, s
 }
 
 func GeneratePrivateKey() (crypto.Signer, string, error) {
-	// TODO: make configurable (e.g. "private_key_type" and "private_key_bits")
+	// TODO: find any calls to this func, replace with calls to GeneratePrivateKeyWithConfig()
+	// using prefs `private_key_type` and `private_key_bits`
 	return GeneratePrivateKeyWithConfig("ecdsa", 256)
 }
