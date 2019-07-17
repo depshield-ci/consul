@@ -3106,6 +3106,7 @@ func TestConfigFlagsAndEdgecases(t *testing.T) {
 									"match": {
 										"http": {
 											"path_prefix": "/foo",
+											"methods": [ "GET", "DELETE" ],
 											"query_param": [
 												{
 													"name": "hack1",
@@ -3189,6 +3190,7 @@ func TestConfigFlagsAndEdgecases(t *testing.T) {
 								match {
 									http {
 										path_prefix = "/foo"
+										methods = [ "GET", "DELETE" ]
 										query_param = [
 											{
 												name = "hack1"
@@ -3271,6 +3273,7 @@ func TestConfigFlagsAndEdgecases(t *testing.T) {
 								Match: &structs.ServiceRouteMatch{
 									HTTP: &structs.ServiceRouteHTTPMatch{
 										PathPrefix: "/foo",
+										Methods:    []string{"GET", "DELETE"},
 										QueryParam: []structs.ServiceRouteHTTPMatchQueryParam{
 											{
 												Name:    "hack1",
