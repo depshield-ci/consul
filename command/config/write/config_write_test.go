@@ -268,12 +268,15 @@ func TestParseConfigEntry(t *testing.T) {
 									},
 									{
 										name = "hack2"
-										value = "1"
+										exact = "1"
 									},
 									{
 										name = "hack3"
-										value = "a.*z"
-										regex = true
+										regex = "a.*z"
+									},
+									{
+										name = "hack4"
+										present = true
 									},
 								]
 							}
@@ -346,12 +349,15 @@ func TestParseConfigEntry(t *testing.T) {
 									},
 									{
 										Name = "hack2"
-										Value = "1"
+										Exact = "1"
 									},
 									{
 										Name = "hack3"
-										Value = "a.*z"
-										Regex = true
+										Regex = "a.*z"
+									},
+									{
+										name = "hack4"
+										Present = true
 									},
 								]
 							}
@@ -424,12 +430,15 @@ func TestParseConfigEntry(t *testing.T) {
 									},
 									{
 										Name:  "hack2",
-										Value: "1",
+										Exact: "1",
 									},
 									{
 										Name:  "hack3",
-										Value: "a.*z",
-										Regex: true,
+										Regex: "a.*z",
+									},
+									{
+										Name:    "hack4",
+										Present: true,
 									},
 								},
 							},
