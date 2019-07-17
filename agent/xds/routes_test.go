@@ -191,7 +191,7 @@ func TestRoutesFromSnapshot(t *testing.T) {
 							},
 							{
 								Match: httpMatch(&structs.ServiceRouteHTTPMatch{
-									Methods: []string{"GET", "put"},
+									Methods: []string{"GET", "PUT"},
 								}),
 								Destination: toService("just-methods"),
 							},

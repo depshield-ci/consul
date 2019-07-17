@@ -126,7 +126,7 @@
                 "headers": [
                   {
                     "name": ":method",
-                    "regexMatch": "GET|put"
+                    "regexMatch": "GET|PUT"
                   }
                 ]
               },
