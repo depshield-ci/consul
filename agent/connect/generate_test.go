@@ -28,7 +28,7 @@ func init() {
 		{keyType: "ecdsa", keyBits: 384},
 		{keyType: "ecdsa", keyBits: 521},
 	}
-	badParams = []KeyConfig {
+	badParams = []KeyConfig{
 		{keyType: "rsa", keyBits: 0},
 		{keyType: "rsa", keyBits: 1024},
 		{keyType: "ecdsa", keyBits: 0},
@@ -39,7 +39,7 @@ func init() {
 
 func makeConfig(kc KeyConfig) structs.CommonCAProviderConfig {
 	return structs.CommonCAProviderConfig{
-		LeafCertTTL: 3 * 24 * time.Hour,
+		LeafCertTTL:    3 * 24 * time.Hour,
 		PrivateKeyType: kc.keyType,
 		PrivateKeyBits: kc.keyBits,
 	}
