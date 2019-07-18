@@ -102,6 +102,10 @@ type CARoot struct {
 	// active root.
 	RotatedOutAt time.Time `json:"-"`
 
+	// Type of private key used to create the CA cert.
+	PrivateKeyType string
+	PrivateKeyBits int
+
 	RaftIndex
 }
 
