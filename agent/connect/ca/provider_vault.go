@@ -101,9 +101,15 @@ func (v *VaultProvider) GenerateRoot() error {
 		if err != nil {
 			return err
 		}
+		keyType := v.config.PrivateKeyType
+		if keyType == "ecdsa" {
+			keyType = "ec"
+		}
 		_, err = v.client.Logical().Write(v.config.RootPKIPath+"root/generate/internal", map[string]interface{}{
 			"common_name": fmt.Sprintf("Vault CA Root Authority %s", uuid),
 			"uri_sans":    spiffeID.URI().String(),
+			"key_type":    keyType,
+			"key_bits":    v.config.PrivateKeyBits,
 		})
 		if err != nil {
 			return err
