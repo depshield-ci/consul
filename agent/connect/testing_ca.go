@@ -3,8 +3,6 @@ package connect
 import (
 	"bytes"
 	"crypto"
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -33,15 +31,17 @@ var testCACounter uint64
 // If xc is non-nil, then the returned certificate will have a signing cert
 // that is cross-signed with the previous cert, and this will be set as
 // SigningCert.
-func TestCA(t testing.T, xc *structs.CARoot) *structs.CARoot {
+func TestCA(t testing.T, xc *structs.CARoot, keyType string, keyBits int) *structs.CARoot {
 	var result structs.CARoot
 	result.Active = true
 	result.Name = fmt.Sprintf("Test CA %d", atomic.AddUint64(&testCACounter, 1))
 
 	// Create the private key we'll use for this CA cert.
-	signer, keyPEM := testPrivateKey(t)
+	signer, keyPEM := testPrivateKey(t, keyType, keyBits)
 	result.SigningKey = keyPEM
 	result.SigningKeyID = HexString(testKeyID(t, signer.Public()))
+	result.PrivateKeyType = keyType
+	result.PrivateKeyBits = keyBits
 
 	// The serial number for the cert
 	sn, err := testSerialNumber()
@@ -159,9 +159,14 @@ func TestLeaf(t testing.T, service string, root *structs.CARoot) (string, string
 	}
 
 	// Generate fresh private key
-	pkSigner, pkPEM, err := GeneratePrivateKey()
+	pkSigner, pkPEM, err := GeneratePrivateKeyWithConfig(root.PrivateKeyType, root.PrivateKeyBits)
 	if err != nil {
 		t.Fatalf("failed to generate private key: %s", err)
+	}
+
+	sigAlgo := x509.ECDSAWithSHA256
+	if root.PrivateKeyType == "rsa" {
+		sigAlgo = x509.SHA256WithRSA
 	}
 
 	// Cert template for generation
@@ -169,7 +174,7 @@ func TestLeaf(t testing.T, service string, root *structs.CARoot) (string, string
 		SerialNumber:          sn,
 		Subject:               pkix.Name{CommonName: service},
 		URIs:                  []*url.URL{spiffeId.URI()},
-		SignatureAlgorithm:    x509.ECDSAWithSHA256,
+		SignatureAlgorithm:    sigAlgo,
 		BasicConstraintsValid: true,
 		KeyUsage: x509.KeyUsageDataEncipherment |
 			x509.KeyUsageKeyAgreement |
@@ -209,7 +214,7 @@ func TestCSR(t testing.T, uri CertURI) (string, string) {
 	}
 
 	// Create the private key we'll use
-	signer, pkPEM := testPrivateKey(t)
+	signer, pkPEM := testPrivateKey(t, DefaultPrivateKeyType, DefaultPrivateKeyBits)
 
 	// Create the CSR itself
 	var csrBuf bytes.Buffer
@@ -253,24 +258,13 @@ func testKeyID(t testing.T, raw interface{}) []byte {
 // which will be the same for multiple CAs/Leafs. Also note that our UUID
 // generator also reads from crypto rand and is called far more often during
 // tests than this will be.
-func testPrivateKey(t testing.T) (crypto.Signer, string) {
-	pk, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+func testPrivateKey(t testing.T, keyType string, keyBits int) (crypto.Signer, string) {
+	pk, pkPEM, err := GeneratePrivateKeyWithConfig(keyType, keyBits)
 	if err != nil {
 		t.Fatalf("error generating private key: %s", err)
 	}
 
-	bs, err := x509.MarshalECPrivateKey(pk)
-	if err != nil {
-		t.Fatalf("error generating private key: %s", err)
-	}
-
-	var buf bytes.Buffer
-	err = pem.Encode(&buf, &pem.Block{Type: "EC PRIVATE KEY", Bytes: bs})
-	if err != nil {
-		t.Fatalf("error encoding private key: %s", err)
-	}
-
-	return pk, buf.String()
+	return pk, pkPEM
 }
 
 // testSerialNumber generates a serial number suitable for a certificate. For
@@ -308,11 +302,11 @@ type TestAgentRPC interface {
 // can't introduce an import cycle by importing `agent.TestAgent` here directly.
 // It also means this will work in a few other places we mock that method.
 func TestCAConfigSet(t testing.T, a TestAgentRPC,
-	ca *structs.CARoot) *structs.CARoot {
+	ca *structs.CARoot, keyType string, keyBits int) *structs.CARoot {
 	t.Helper()
 
 	if ca == nil {
-		ca = TestCA(t, nil)
+		ca = TestCA(t, nil, keyType, keyBits)
 	}
 	newConfig := &structs.CAConfiguration{
 		Provider: "consul",
@@ -320,6 +314,8 @@ func TestCAConfigSet(t testing.T, a TestAgentRPC,
 			"PrivateKey":     ca.SigningKey,
 			"RootCert":       ca.RootCert,
 			"RotationPeriod": 180 * 24 * time.Hour,
+			"PrivateKeyType": ca.PrivateKeyType,
+			"PrivateKeyBits": ca.PrivateKeyBits,
 		},
 	}
 	args := &structs.CARequest{
