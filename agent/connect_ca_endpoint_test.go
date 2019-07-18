@@ -107,6 +107,9 @@ func TestConnectCAConfig(t *testing.T) {
 	// The config should be updated now.
 	{
 		expected.RotationPeriod = time.Hour
+		expected.PrivateKeyType = connect.DefaultPrivateKeyType
+		expected.PrivateKeyBits = connect.DefaultPrivateKeyBits
+
 		req, _ := http.NewRequest("GET", "/v1/connect/ca/configuration", nil)
 		resp := httptest.NewRecorder()
 		obj, err := a.srv.ConnectCAConfiguration(resp, req)
